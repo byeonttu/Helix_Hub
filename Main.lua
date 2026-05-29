@@ -1,8 +1,10 @@
 -- [[ Helix Hub - Main Controller ]]
 local KavoLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+
+-- [수정] UI 창이 잘리지 않도록 테마 구조를 완벽하게 빌드합니다.
 local Window = KavoLibrary.CreateLib("Helix Hub | Premium v1.0", "DarkTheme")
 
--- 전역 설정 테이블 (모든 모듈의 가동 상태 및 옵션을 실시간 제어)
+-- 전역 설정 테이블
 _G.HelixConfig = {
     BypassEnabled = false,
     DeviceSpoofEnabled = false,
@@ -18,10 +20,10 @@ _G.HelixConfig = {
     HitSoundVolume = 1.0
 }
 
--- [[ Public 리포지토리 전용 깔끔한 베이스 경로 ]]
-local BasePath = "https://raw.githubusercontent.com/byeonttu/Helix_Hub/main/Modules/"
+-- [[ Public 리포지토리 고정 경로 ]]
+local BasePath = "https://raw.githubusercontent.com/byeonttu/Helix_Hub/main/"
 
--- 토큰 없이 URL만으로 깔끔하게 불러오는 동적 로더 함수
+-- 동적 로더 함수
 local function LoadModule(fileName)
     local rawUrl = BasePath .. fileName
     local success, code = pcall(function()
@@ -36,7 +38,7 @@ local function LoadModule(fileName)
             warn("[Helix Error] 구문 오류 (" .. fileName .. "):", err)
         end
     else
-        warn("[Helix Error] 파일 로드 실패 (" .. fileName .. ") - GitHub 경로 및 파일명을 확인하세요.")
+        warn("[Helix Error] 파일 로드 실패 (" .. fileName .. ")")
     end
 end
 
@@ -139,3 +141,27 @@ local CreditsSection = CreditsTab:NewSection("Project Helix")
 CreditsSection:NewLabel("Developed by Helix Team")
 CreditsSection:NewLabel("UI Framework: Kavo UI")
 CreditsSection:NewLabel("Status: Active (2026)")
+
+--------------------------------------------------------------------
+-- [7] UI 토글 시스템 (오른쪽 쉬프트 키 및 크기 강제 패치)
+--------------------------------------------------------------------
+local UserInputService = game:GetService("UserInputService")
+local UIFrame = game:GetService("CoreGui"):FindFirstChild("Helix Hub | Premium v1.0") or game:GetService("Players").LocalPlayer:FindFirstChildOfClass("PlayerGui"):FindFirstChild("Helix Hub | Premium v1.0")
+
+if UIFrame then
+    -- Kavo UI 특유의 컨테이너를 찾아 가로 스케일이 잘리지 않도록 강제 보정합니다.
+    local MainFrame = UIFrame:FindFirstChild("Main") or UIFrame:FindFirstChildOfClass("Frame")
+    if MainFrame then
+        MainFrame.Size = UDim2.new(0, 525, 0, 350) -- 가로 세로 비율 최적화 조정
+    end
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed then
+            if input.KeyCode == Enum.KeyCode.RightShift then
+                UIFrame.Enabled = not UIFrame.Enabled
+            end
+        end
+    end)
+else
+    warn("[Helix Error] 토글 시스템이 UI 오브젝트를 찾지 못했습니다.")
+end
